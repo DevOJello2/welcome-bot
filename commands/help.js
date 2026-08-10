@@ -1,74 +1,67 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { getGuildLang } = require('../utils/getLang');
-const { t } = require('../locales');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Displays a full overview of all Oscar Bot commands.')
-    .setDescriptionLocalizations({
-      'nl': 'Toont een volledig overzicht van alle Oscar Bot-commando\'s.',
-      'fr': 'Affiche un aperçu complet de toutes les commandes d\'Oscar Bot.',
-      'hi': 'Oscar Bot के सभी कमांड का पूर्ण overview प्रदर्शित करता है।'
-    }),
+    .setDescription('Displays a full overview of all Oscar Bot commands.'),
 
   async execute(interaction) {
-    const lang = await getGuildLang(interaction.guildId);
-
     const embed = new EmbedBuilder()
-      .setTitle(t(lang, 'help_title'))
+      .setTitle('Command Overview')
       .setColor(0x5865F2)
-      .setDescription(t(lang, 'help_desc'))
+      .setDescription('Here is a list of all available commands and their functions.')
       .addFields(
         {
-          name: t(lang, 'help_cat_mod'),
+          name: '🛡️ Moderation',
           value:
-            '`/ban` — ' + t(lang, 'help_ban_desc') + '\n' +
-            '`/unban` — ' + t(lang, 'help_unban_desc') + '\n' +
-            '`/tempban` — ' + t(lang, 'help_tempban_desc') + '\n' +
-            '`/softban` — ' + t(lang, 'help_softban_desc') + '\n' +
-            '`/kick` — ' + t(lang, 'help_kick_desc') + '\n' +
-            '`/dossier` — ' + t(lang, 'help_dossier_desc') + '\n' +
-            '`/warn add` | `/remove` | `/list` — ' + t(lang, 'help_warn_desc') + '\n' +
-            '`/lock channel` | `/lock open` — ' + t(lang, 'help_lock_desc') + '\n' +
-            '`/clear` — ' + t(lang, 'help_clear_desc') + '\n' +
-            '`/role add` | `/role remove` — ' + t(lang, 'help_role_desc')
+            '`/ban` — Ban a user from the server\n' +
+            '`/unban` — Unban a user via ID\n' +
+            '`/tempban` — Temporarily ban a user\n' +
+            '`/softban` — Softban a user and clear messages\n' +
+            '`/kick` — Kick a user from the server\n' +
+            '`/dossier` — View a user\'s moderation history\n' +
+            '`/warn add` | `/remove` | `/list` — Manage warnings\n' +
+            '`/lock channel` | `/lock open` — Lock or unlock a channel\n' +
+            '`/clear` — Delete a specific number of messages\n' +
+            '`/role add` | `/role remove` — Manage user roles\n' +
+            '`/mute` — Give a user a timeout\n' +
+            '`/unmute` — Remove a user\'s timeout'
         },
         {
-          name: t(lang, 'help_cat_tickets'),
+          name: '🎟️ Tickets & Staff',
           value:
-            '`/ticket setup` — ' + t(lang, 'help_ticket_desc') + '\n' +
-            '`/staffstats` — ' + t(lang, 'help_staffstats_desc') + '\n' +
-            '`/task` — ' + t(lang, 'help_task_desc')
+            '`/ticket setup` — Set up the ticket system\n' +
+            '`/staffstats` — View staff activity statistics\n' +
+            '`/task` — Manage staff tasks'
         },
         {
-          name: t(lang, 'help_cat_verify'),
+          name: '✅ Verification',
           value:
-            '`/setup-verify` — ' + t(lang, 'help_verify_desc') + '\n' +
-            '`/welcome` — ' + t(lang, 'help_welcome_desc')
+            '`/setup-verify` — Set up the verification system\n' +
+            '`/welcome` — Configure welcome messages'
         },
         {
-          name: t(lang, 'help_cat_tools'),
+          name: '🛠️ Utility Tools',
           value:
-            '`/poll` — ' + t(lang, 'help_poll_desc', { default: 'Creates a quick poll for members to vote on.' }) + '\n' +
-            '`/roleinfo` — ' + t(lang, 'help_roleinfo_desc', { default: 'Displays detailed info and permissions for a role.' }) + '\n' +
-            '`/ping` — ' + t(lang, 'help_ping_desc', { default: 'Checks the bot\'s current API latency and status.' }) + '\n' +
-            '`/afk` — ' + t(lang, 'help_afk_desc', { default: 'Sets AFK status and auto-replies when mentioned.' }) + '\n' +
-            '`/language` — ' + t(lang, 'help_language_desc', { default: 'Change bot language for the server.' }) + '\n' +
-            '`/logtoggle` — ' + t(lang, 'help_logtoggle_desc') + '\n' +
-            '`/setlog` — ' + t(lang, 'help_setlog_desc')
+            '`/poll` — Creates a quick poll for members to vote on\n' +
+            '`/roleinfo` — Displays detailed info and permissions for a role\n' +
+            '`/ping` — Checks the bot\'s current API latency and status\n' +
+            '`/afk` — Sets AFK status and auto-replies when mentioned\n' +
+            '`/language` — Change bot language for the server\n' +
+            '`/logtoggle` — Toggle specific logging events\n' +
+            '`/setlog` — Set the logging channel'
         },
         {
-          name: t(lang, 'help_cat_boosts'),
+          name: '🚀 Boosts & Giveaways',
           value:
-            '`/reactionrole add` | `remove` | `list` — ' + t(lang, 'help_reactionrole_desc') + '\n' +
-            '`/boost setup` | `/boost config` — ' + t(lang, 'help_boost_desc') + '\n' +
-            '`/giveaway start` | `end` | `reroll` | `bonus` | `bonuslist` — ' + t(lang, 'help_giveaway_desc')
+            '`/reactionrole add` | `remove` | `list` — Manage reaction roles\n' +
+            '`/boost setup` | `/boost config` — Configure server boost rewards\n' +
+            '`/giveaway start` | `end` | `reroll` | `bonus` | `bonuslist` — Manage giveaways'
         },
         {
-          name: t(lang, 'help_cat_games'),
+          name: '🎮 Games',
           value:
-            '`/hangrygames new` | `role` | `cancel` — ' + t(lang, 'help_games_desc')
+            '`/story` — Read the legendary adventure of Jelle and Oscar'
         }
       )
       .setFooter({ text: 'Oscar Bot by DevOJello · built with discord.js v14' });
