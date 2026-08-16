@@ -1,7 +1,10 @@
 const fs = require('fs');
-const path = require('path');
+const path = path = require('path');
 const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
 require('dotenv').config();
+
+// Zorg dat je pool hier beschikbaar is als je PostgreSQL gebruikt
+// const pool = require('./path-to-your-db-pool');
 
 const express = require('express');
 const app = express();
@@ -134,6 +137,9 @@ client.distube
 // COMMANDS & EVENTS LOADING
 // ==========================================
 client.commands = new Collection();
+client.prefixCommands = new Collection(); // 👈 Collectie voor prefix commando's
+
+// 1. Inlezen van Slash Commando's
 const commandsPath = path.join(__dirname, 'commands');
 if (!fs.existsSync(commandsPath)) fs.mkdirSync(commandsPath);
 
@@ -141,7 +147,19 @@ for (const file of fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'))) 
   const command = require(path.join(commandsPath, file));
   if (command.data && typeof command.data.toJSON === 'function') {
     client.commands.set(command.data.name, command);
-    console.log(`✔ Loaded: ${command.data.name}`);
+    console.log(`✔ Loaded Slash Command: ${command.data.name}`);
+  }
+}
+
+// 2. Inlezen van Prefix Commando's (bijv. in commands/prefix/)
+const prefixCommandsPath = path.join(__dirname, 'commands', 'prefix');
+if (!fs.existsSync(prefixCommandsPath)) fs.mkdirSync(prefixCommandsPath, { recursive: true });
+
+for (const file of fs.readdirSync(prefixCommandsPath).filter(f => f.endsWith('.js'))) {
+  const command = require(path.join(prefixCommandsPath, file));
+  if (command.name) {
+    client.prefixCommands.set(command.name, command);
+    console.log(`✔ Loaded Prefix Command: ${command.name}`);
   }
 }
 
@@ -171,6 +189,39 @@ client.once('ready', async () => {
     console.log('✅ Welcome commands deployed globally.');
   } catch (err) {
     console.error('Failed to deploy commands:', err);
+  }
+});
+
+// Functie om de prefix op te halen uit de database (of standaard '!' te gebruiken)
+async function getGuildPrefix(guildId) {
+  if (!guildId) return '!';
+  try {
+    // Pas dit aan naar jouw database pool variabele indien nodig
+    const res = await pool.query('SELECT prefix FROM guild_settings WHERE guild_id = $1', [guildId]);
+    return res.rows[0]?.prefix || '!';
+  } catch (err) {
+    return '!';
+  }
+}
+
+// 3. MessageCreate Handler voor Prefix Commando's
+client.on('messageCreate', async (message) => {
+  if (!message.guild || message.author.bot) return;
+
+  const prefix = await getGuildPrefix(message.guild.id);
+  if (!message.content.startsWith(prefix)) return;
+
+  const args = message.content.slice(prefix.length).trim().split(/ +/);
+  const commandName = args.shift().toLowerCase();
+
+  const command = client.prefixCommands.get(commandName);
+  if (!command) return;
+
+  try {
+    await command.execute(message, args, client);
+  } catch (error) {
+    console.error(error);
+    message.reply({ content: '❌ Er is iets misgegaan bij het uitvoeren van dit commando.' }).catch(() => {});
   }
 });
 
