@@ -90,13 +90,13 @@ const client = new Client({
 // DISTUBE MUSIC SETUP
 // ==========================================
 const { DisTube } = require('distube');
-const { YTDL } = require('@distube/ytdl-core');
+const { YtDlpPlugin } = require('@distube/yt-dlp');
 
 client.distube = new DisTube(client, {
   leaveOnStop: false, // Managed by our 24/7 logic
   emitNewSongOnly: true,
   emitAddSongWhenCreatingQueue: false,
-  plugins: [new YTDL()]
+  plugins: [new YtDlpPlugin()]
 });
 
 // DisTube Event Handlers
@@ -196,7 +196,6 @@ client.once('ready', async () => {
 async function getGuildPrefix(guildId) {
   if (!guildId) return '!';
   try {
-    // Pas dit aan naar jouw database pool variabele indien nodig
     const res = await pool.query('SELECT prefix FROM guild_settings WHERE guild_id = $1', [guildId]);
     return res.rows[0]?.prefix || '!';
   } catch (err) {
