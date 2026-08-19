@@ -258,4 +258,6 @@ client.on('interactionCreate', async (interaction) => {
 require('./utils/logging')(client);
 require('./events/logging')(client);
 
-client.login(process.env.WELCOME_TOKEN);
+client.login(process.env.WELCOME_TOKEN || process.env.DISCORD_BOT_TOKEN).catch(err => {
+    console.error('❌ CRITICAL LOGIN ERROR:', err);
+});
