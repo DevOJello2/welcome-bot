@@ -3,9 +3,6 @@ const path = require('path');
 const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
 require('dotenv').config();
 
-// Zorg dat je pool hier beschikbaar is als je PostgreSQL gebruikt
-// const pool = require('./path-to-your-db-pool');
-
 const express = require('express');
 const app = express();
 
@@ -136,7 +133,7 @@ client.distube
 // COMMANDS & EVENTS LOADING
 // ==========================================
 client.commands = new Collection();
-client.prefixCommands = new Collection(); // 👈 Collectie voor prefix commando's
+client.prefixCommands = new Collection();
 
 // 1. Inlezen van Slash Commando's
 const commandsPath = path.join(__dirname, 'commands');
@@ -150,7 +147,7 @@ for (const file of fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'))) 
   }
 }
 
-// 2. Inlezen van Prefix Commando's (bijv. in commands/prefix/)
+// 2. Inlezen van Prefix Commando's
 const prefixCommandsPath = path.join(__dirname, 'commands', 'prefix');
 if (!fs.existsSync(prefixCommandsPath)) fs.mkdirSync(prefixCommandsPath, { recursive: true });
 
@@ -174,15 +171,22 @@ for (const file of fs.readdirSync(eventsPath).filter(f => f.endsWith('.js') && f
   }
 }
 
-const rest = new REST({ version: '10' }).setToken(process.env.WELCOME_TOKEN);
+// Token & Client ID configuratie met fallbacks
+const botToken = process.env.WELCOME_TOKEN || process.env.DISCORD_BOT_TOKEN;
+const clientId = process.env.WELCOME_CLIENT_ID || process.env.WELCOME_ICLIENT_ID || process.env.DISCORD_CLIENT_ID;
+
+const rest = new REST({ version: '10' }).setToken(botToken || '');
 
 client.once('ready', async () => {
   console.log(`👋 Welcome Bot logged in as ${client.user.tag}`);
   try {
     const commandsJSON = Array.from(client.commands.values()).map(cmd => cmd.data.toJSON());
-    if (!process.env.WELCOME_CLIENT_ID) return console.warn('WELCOME_CLIENT_ID not set');
+    if (!clientId) {
+      console.warn('⚠️ CLIENT_ID is niet ingesteld in environment variables!');
+      return;
+    }
     await rest.put(
-      Routes.applicationCommands(process.env.WELCOME_CLIENT_ID),
+      Routes.applicationCommands(clientId),
       { body: commandsJSON }
     );
     console.log('✅ Welcome commands deployed globally.');
@@ -191,7 +195,7 @@ client.once('ready', async () => {
   }
 });
 
-// Functie om de prefix op te halen uit de database (of standaard '!' te gebruiken)
+// Functie om de prefix op te halen uit de database
 async function getGuildPrefix(guildId) {
   if (!guildId) return '!';
   try {
@@ -258,6 +262,10 @@ client.on('interactionCreate', async (interaction) => {
 require('./utils/logging')(client);
 require('./events/logging')(client);
 
-client.login(process.env.WELCOME_TOKEN || process.env.DISCORD_BOT_TOKEN).catch(err => {
+if (!botToken) {
+  console.error('❌ KRITIEKE FOUT: Geen Bot Token gevonden in je Environment Variables!');
+} else {
+  client.login(botToken).catch(err => {
     console.error('❌ CRITICAL LOGIN ERROR:', err);
-});
+  });
+}
