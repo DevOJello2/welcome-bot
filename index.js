@@ -175,7 +175,7 @@ for (const file of fs.readdirSync(eventsPath).filter(f => f.endsWith('.js') && f
 const botToken = process.env.WELCOME_TOKEN || process.env.DISCORD_BOT_TOKEN;
 const clientId = process.env.WELCOME_CLIENT_ID || process.env.WELCOME_ICLIENT_ID || process.env.DISCORD_CLIENT_ID;
 
-const rest = new REST({ version: '10' }).setToken(botToken || '');
+const rest = new REST({ version: '10' }).setToken(botToken ? botToken.trim() : '');
 
 client.once('ready', async () => {
   console.log(`👋 Welcome Bot logged in as ${client.user.tag}`);
@@ -262,10 +262,21 @@ client.on('interactionCreate', async (interaction) => {
 require('./utils/logging')(client);
 require('./events/logging')(client);
 
-if (!botToken) {
+// Token opschonen en veilig inloggen
+const cleanToken = botToken ? botToken.trim() : '';
+
+console.log("🔍 [DEBUG] Token lengte:", cleanToken.length);
+console.log("🔍 [DEBUG] Token begint met:", cleanToken.substring(0, 5));
+
+if (!cleanToken) {
   console.error('❌ KRITIEKE FOUT: Geen Bot Token gevonden in je Environment Variables!');
 } else {
-  client.login(botToken).catch(err => {
-    console.error('❌ CRITICAL LOGIN ERROR:', err);
-  });
+  console.log("🔄 Bezig met inloggen bij Discord...");
+  client.login(cleanToken)
+    .then(() => {
+      console.log(`🎉 SUCCES! Bot is ingelogd als ${client.user.tag}`);
+    })
+    .catch(err => {
+      console.error('❌ CRITICAL LOGIN ERROR:', err);
+    });
 }
