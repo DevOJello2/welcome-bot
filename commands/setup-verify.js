@@ -33,6 +33,9 @@ module.exports = {
     .addChannelOption(opt => opt.setName('log_channel').setDescription('Channel to log verifications (optional)').setDescriptionLocalizations({ 'nl': 'Kanaal om verificaties in te loggen (optioneel)', 'fr': 'Canal pour journaliser les vérifications (facultatif)', 'hi': 'सत्यापन लॉग करने के लिए चैनल (वैकल्पिक)' }).setRequired(false)),
 
   async execute(interaction) {
+    // 1. Geef Discord direct een seintje zodat je de 3-seconden limiet omzeilt
+    await interaction.deferReply({ flags: 64 });
+
     const lang = await getGuildLang(interaction.guildId);
 
     const roles = ['role1', 'role2', 'role3']
@@ -42,6 +45,7 @@ module.exports = {
     const unverifiedRole = interaction.options.getRole('unverified_role');
     const logChannel = interaction.options.getChannel('log_channel');
 
+    // 2. Sla alles op in de database
     await pool.query(`
       INSERT INTO verify_config (guild_id, role_ids, unverified_role_id, log_channel_id)
       VALUES ($1, $2, $3, $4)
@@ -68,10 +72,12 @@ module.exports = {
         .setStyle(ButtonStyle.Success)
     );
 
+    // 3. Stuur het verificatiebericht naar het kanaal
     await interaction.channel.send({ embeds: [embed], components: [row] });
-    return interaction.reply({
-      content: t(lang, 'verify_setup_success', { count: roles.length }),
-      flags: 64
+
+    // 4. Stuur een verborgen bevestiging naar de gebruiker via editReply
+    return interaction.editReply({
+      content: t(lang, 'verify_setup_success', { count: roles.length })
     });
   }
 };
