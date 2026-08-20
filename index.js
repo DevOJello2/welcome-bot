@@ -264,7 +264,12 @@ client.on('interactionCreate', async (interaction) => {
 require('./utils/logging')(client);
 require('./events/logging')(client);
 
-// Token opschonen en veilig inloggen
+// Globale foutafhandeling voor onverwachte rejections
+process.on('unhandledRejection', error => {
+  console.error('🔥 ONBEHANDELDE PROMISE REJECTION:', error);
+});
+
+// Token opschonen en veilig inloggen met time-out bewaking
 const cleanToken = botToken ? botToken.trim() : '';
 
 console.log("🔍 [DEBUG] Token lengte:", cleanToken.length);
@@ -274,11 +279,18 @@ if (!cleanToken) {
   console.error('❌ KRITIEKE FOUT: Geen Bot Token gevonden in je Environment Variables!');
 } else {
   console.log("🔄 Bezig met inloggen bij Discord...");
+  
+  const loginTimeout = setTimeout(() => {
+    console.error('⏰ TIMEOUT: Het inloggen bij Discord duurt langer dan 10 seconden. Mogelijk blokkeert de serveromgeving de uitgaande verbinding.');
+  }, 10000);
+
   client.login(cleanToken)
     .then(() => {
+      clearTimeout(loginTimeout);
       console.log(`🎉 SUCCES! Bot is ingelogd als ${client.user.tag}`);
     })
     .catch(err => {
+      clearTimeout(loginTimeout);
       console.error('❌ CRITICAL LOGIN ERROR:', err);
     });
 }

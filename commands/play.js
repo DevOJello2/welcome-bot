@@ -20,14 +20,26 @@ module.exports = {
     await interaction.deferReply();
 
     try {
+      // Gebruik interaction als eerste argument i.p.v. alleen het channel object
       await client.distube.play(channel, query, {
         textChannel: interaction.channel,
         member: interaction.member,
+        interaction: interaction,
       });
-      await interaction.editReply(`🎵 Searching and loading: **${query}**...`);
+      
+      // DisTube handelt de antwoorden zelf af via events, dus we geven een nette bevestiging
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.editReply(`🎵 Searching for: **${query}**...`).catch(() => {});
+      } else {
+        await interaction.followUp({ content: `🎵 Loading: **${query}**...`, ephemeral: true }).catch(() => {});
+      }
     } catch (error) {
       console.error('Error in play command:', error);
-      await interaction.editReply('❌ An error occurred while trying to play that song.');
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply('❌ An error occurred while trying to play that song.').catch(() => {});
+      } else {
+        await interaction.reply({ content: '❌ An error occurred while trying to play that song.', ephemeral: true }).catch(() => {});
+      }
     }
   }
 };
