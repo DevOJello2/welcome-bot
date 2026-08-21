@@ -90,12 +90,13 @@ const { DisTube } = require('distube');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
 const ffmpeg = require('ffmpeg-static');
 
+// Stel het FFmpeg pad in via de omgevingsvariabele zodat DisTube het automatisch vindt
+process.env.FFMPEG_PATH = ffmpeg;
+
 client.distube = new DisTube(client, {
   emitNewSongOnly: true,
   emitAddSongWhenCreatingQueue: false,
-  plugins: [new YtDlpPlugin()],
-  // Geef het pad mee via de correcte eigenschap voor externe binaries
-  customFFmpeg: ffmpeg,
+  plugins: [new YtDlpPlugin()]
 });
 
 // DisTube Event Handlers
