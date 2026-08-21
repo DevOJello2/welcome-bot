@@ -88,11 +88,14 @@ const client = new Client({
 // ==========================================
 const { DisTube } = require('distube');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
+const ffmpeg = require('ffmpeg-static');
 
 client.distube = new DisTube(client, {
   emitNewSongOnly: true,
   emitAddSongWhenCreatingQueue: false,
-  plugins: [new YtDlpPlugin()]
+  plugins: [new YtDlpPlugin()],
+  // Geef het pad mee via de correcte eigenschap voor externe binaries
+  customFFmpeg: ffmpeg,
 });
 
 // DisTube Event Handlers
