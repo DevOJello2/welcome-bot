@@ -88,12 +88,10 @@ const client = new Client({
 // ==========================================
 const { DisTube } = require('distube');
 const { YtDlpPlugin } = require('@distube/yt-dlp');
-const ffmpeg = require('ffmpeg-static');
 
 client.distube = new DisTube(client, {
   emitNewSongOnly: true,
   emitAddSongWhenCreatingQueue: false,
-  ffmpegPath: ffmpeg,
   plugins: [new YtDlpPlugin()]
 });
 
