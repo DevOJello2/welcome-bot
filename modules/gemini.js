@@ -13,7 +13,7 @@ async function askOscar(channelId, prompt, username) {
     
     if (!chat) {
       chat = ai.chats.create({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
         config: {
           systemInstruction: `You are Oscar, a cheerful, playful, and loyal dog who is the official mascot of the Discord bot "Duck Arcade". 
 You love treats, playing fetch, belly rubs, games, and making people smile. 
