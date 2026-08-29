@@ -24,7 +24,7 @@ Keep your answers snappy and use emojis like 🐾, 🦴, 🐶.`
     history.push({ role: 'user', content: `${username} says: ${prompt}` });
 
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'llama-3.1-8b-instant',
       messages: history,
       max_tokens: 500,
     });
@@ -33,7 +33,6 @@ Keep your answers snappy and use emojis like 🐾, 🦴, 🐶.`
     
     history.push({ role: 'assistant', content: reply });
 
-    // Houd de geschiedenis netjes (maximaal 10 berichten plus de system prompt)
     if (history.length > 11) {
       history.splice(1, 2);
     }
