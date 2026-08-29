@@ -1,4 +1,4 @@
-const { askOscar } = require('../modules/gemini');
+const { askOscar } = require('../modules/groq');
 const pool = require('../database');
 
 const COOLDOWNS = new Map(); // userId -> last reply timestamp
