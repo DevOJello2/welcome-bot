@@ -24,7 +24,7 @@ Keep your answers snappy and use emojis like 🐾, 🦴, 🐶.`
     history.push({ role: 'user', content: `${username} says: ${prompt}` });
 
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
+      model: 'openai/gpt-oss-20b',
       messages: history,
       max_tokens: 500,
     });
