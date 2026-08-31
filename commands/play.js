@@ -1,45 +1,55 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('play')
     .setDescription('Play a song or playlist in your voice channel')
-    .addStringOption(option =>
-      option.setName('query')
-        .setDescription('The URL or search term of the song')
+    .addStringOption(opt =>
+      opt.setName('query')
+        .setDescription('Song name, YouTube/Spotify/SoundCloud URL')
         .setRequired(true)
+        .setAutocomplete(false)
     ),
 
   async execute(interaction, client) {
     const channel = interaction.member.voice.channel;
     if (!channel) {
-      return interaction.reply({ content: '❌ You need to be in a voice channel to play music!', ephemeral: true });
+      return interaction.reply({
+        embeds: [new EmbedBuilder().setColor(0xff4444).setDescription('❌ You need to be in a voice channel first!')],
+        ephemeral: true
+      });
+    }
+
+    const botVoice = interaction.guild.members.me.voice.channel;
+    if (botVoice && botVoice.id !== channel.id) {
+      return interaction.reply({
+        embeds: [new EmbedBuilder().setColor(0xff4444).setDescription(`❌ I'm already playing in <#${botVoice.id}>!`)],
+        ephemeral: true
+      });
     }
 
     const query = interaction.options.getString('query');
     await interaction.deferReply();
 
     try {
-      // Gebruik interaction als eerste argument i.p.v. alleen het channel object
       await client.distube.play(channel, query, {
         textChannel: interaction.channel,
         member: interaction.member,
-        interaction: interaction,
       });
-      
-      // DisTube handelt de antwoorden zelf af via events, dus we geven een nette bevestiging
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.editReply(`🎵 Searching for: **${query}**...`).catch(() => {});
-      } else {
-        await interaction.followUp({ content: `🎵 Loading: **${query}**...`, ephemeral: true }).catch(() => {});
-      }
-    } catch (error) {
-      console.error('Error in play command:', error);
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply('❌ An error occurred while trying to play that song.').catch(() => {});
-      } else {
-        await interaction.reply({ content: '❌ An error occurred while trying to play that song.', ephemeral: true }).catch(() => {});
-      }
+
+      await interaction.editReply({
+        embeds: [new EmbedBuilder()
+          .setColor(0x5865f2)
+          .setDescription(`🔍 Searching for **${query}**...`)]
+      });
+    } catch (err) {
+      console.error('[Play] Error:', err.message);
+      const errMsg = err.message?.includes('No result')
+        ? '❌ No results found. Try a different search term or URL.'
+        : '❌ Something went wrong trying to play that. Check the URL or try again.';
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(0xff4444).setDescription(errMsg)]
+      }).catch(() => {});
     }
   }
 };

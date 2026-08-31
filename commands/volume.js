@@ -1,28 +1,46 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+
+const VOLUME_EMOJIS = v => v === 0 ? '🔇' : v < 30 ? '🔈' : v < 70 ? '🔉' : '🔊';
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('volume')
-    .setDescription('Adjust the music volume')
-    .addIntegerOption(option =>
-      option.setName('level')
-        .setDescription('Volume percentage (1 to 100)')
-        .setRequired(true)
+    .setDescription('Adjust or check the music volume')
+    .addIntegerOption(opt =>
+      opt.setName('level')
+        .setDescription('Volume (1–150, leave empty to check current)')
+        .setRequired(false)
         .setMinValue(1)
-        .setMaxValue(100)
+        .setMaxValue(150)
     ),
 
   async execute(interaction, client) {
-    const guildId = interaction.guild.id;
-    const queue = client.distube.getQueue(guildId);
-
+    const queue = client.distube.getQueue(interaction.guild.id);
     if (!queue) {
-      return interaction.reply({ content: '❌ There is no music playing right now!', ephemeral: true });
+      return interaction.reply({
+        embeds: [new EmbedBuilder().setColor(0xff4444).setDescription('❌ Nothing is playing right now!')],
+        ephemeral: true
+      });
     }
 
-    const volume = interaction.options.getInteger('level');
-    client.distube.setVolume(guildId, volume);
+    const level = interaction.options.getInteger('level');
+    if (level === null) {
+      const current = queue.volume;
+      return interaction.reply({
+        embeds: [new EmbedBuilder()
+          .setColor(0x5865f2)
+          .setDescription(`${VOLUME_EMOJIS(current)} Current volume: **${current}%**`)]
+      });
+    }
 
-    await interaction.reply(`🔊 Volume has been set to **${volume}%**.`);
+    client.distube.setVolume(interaction.guild.id, level);
+    const bar = '█'.repeat(Math.round(level / 10)) + '░'.repeat(10 - Math.round(level / 10));
+    
+    return interaction.reply({
+      embeds: [new EmbedBuilder()
+        .setColor(0x00cc66)
+        .setDescription(`${VOLUME_EMOJIS(level)} Volume set to **${level}%**\n\`${bar}\``)
+        .setFooter({ text: level > 100 ? '⚠️ Above 100% may distort audio' : '' })]
+    });
   }
 };
